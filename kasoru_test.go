@@ -37,7 +37,7 @@ func TestField(t *testing.T) {
 	}
 
 	kasoru, _ = New(db, &Model2{}, Page{Cursor: 0, Limit: 2})
-	if kasoru.CursorFieldname() != "model2.cursor" {
+	if kasoru.CursorFieldname() != "model2.position" {
 		t.Errorf("CursorFieldname ignores tag")
 	}
 }

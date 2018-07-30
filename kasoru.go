@@ -56,7 +56,7 @@ func (kasoru *Kasoru) CursorFieldname() string {
 		field := s.Field(i)
 		tag := field.Tag.Get(tagName)
 		if tag != "" {
-			return fmt.Sprintf("%s.%s", scope.TableName(), tag)
+			return fmt.Sprintf("%s.%s", scope.TableName(), gorm.ToDBName(field.Name))
 		}
 	}
 
