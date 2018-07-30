@@ -15,6 +15,33 @@ type Model struct {
 	Name string
 }
 
+type Model2 struct {
+	ID       uint `gorm:"primary_key"`
+	Position uint `kasoru:"cursor"`
+	Name     string
+}
+
+func TestField(t *testing.T) {
+	os.Remove("tmp/TestField.db")
+	db, err := gorm.Open("sqlite3", "tmp/TestField.db")
+	defer db.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var kasoru *Kasoru
+
+	kasoru, _ = New(db, &Model{}, Page{Cursor: 0, Limit: 2})
+	if kasoru.CursorFieldname() != "models.id" {
+		t.Errorf("CursorFieldname ignores primary key")
+	}
+
+	kasoru, _ = New(db, &Model2{}, Page{Cursor: 0, Limit: 2})
+	if kasoru.CursorFieldname() != "model2.cursor" {
+		t.Errorf("CursorFieldname ignores tag")
+	}
+}
+
 func TestNew(t *testing.T) {
 	db, err := gorm.Open("sqlite3", "tmp/TestNew.db")
 	defer db.Close()

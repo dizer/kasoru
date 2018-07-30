@@ -2,6 +2,7 @@ package kasoru
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/jinzhu/gorm"
 )
@@ -28,13 +29,12 @@ func New(db *gorm.DB, model interface{}, page Page) (*Kasoru, error) {
 		Page:       page,
 	}
 
-	scope := db.NewScope(model)
-	pk := fmt.Sprintf("%s.%s", scope.TableName(), scope.PrimaryKey())
+	field := kasoru.CursorFieldname()
 
 	kasoru.DB = db.
-		Where(fmt.Sprintf("%s > ?", pk), page.Cursor).
+		Where(fmt.Sprintf("%s > ?", field), page.Cursor).
 		Limit(page.Limit).
-		Order(fmt.Sprintf("%s ASC", pk))
+		Order(fmt.Sprintf("%s ASC", field))
 
 	return &kasoru, nil
 }
@@ -43,4 +43,22 @@ func New(db *gorm.DB, model interface{}, page Page) (*Kasoru, error) {
 func (kasoru *Kasoru) Next(cursor uint64) *Kasoru {
 	nextKasoru, _ := New(kasoru.OriginalDB, kasoru.Model, Page{Cursor: cursor, Limit: kasoru.Page.Limit})
 	return nextKasoru
+}
+
+// CursorFieldname
+func (kasoru *Kasoru) CursorFieldname() string {
+	tagName := "kasoru"
+	scope := kasoru.OriginalDB.NewScope(kasoru.Model)
+
+	s := reflect.Indirect(reflect.ValueOf(kasoru.Model)).Type()
+
+	for i := 0; i < s.NumField(); i++ {
+		field := s.Field(i)
+		tag := field.Tag.Get(tagName)
+		if tag != "" {
+			return fmt.Sprintf("%s.%s", scope.TableName(), tag)
+		}
+	}
+
+	return fmt.Sprintf("%s.%s", scope.TableName(), scope.PrimaryKey())
 }

@@ -3,8 +3,8 @@
 ```go
 import (
   "github.com/dizer/kasoru"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+  "github.com/jinzhu/gorm"
+  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 db, _ := gorm.Open("sqlite3", "tmp/kasoru.db")
@@ -18,4 +18,15 @@ var ids []uint
 kasoru.DB.Model(&GormModel{}).Pluck("id", &ids)
 kasoru = kasoru.Next(uint64(ids[len(ids)-1]))
 kasoru.Page // {Cursor: 5, Limit: 2}
+```
+
+## Using not primary key for cursor
+
+Just use `kasoru` tag:
+
+```go
+type Model struct {
+	ID       uint `gorm:"primary_key"`
+	Position uint `kasoru:"cursor"`
+}
 ```
