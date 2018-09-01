@@ -88,6 +88,37 @@ func TestLimit(t *testing.T) {
 	}
 }
 
+func TestDirection(t *testing.T) {
+	os.Remove("tmp/TestDirection.db")
+	db, err := gorm.Open("sqlite3", "tmp/TestDirection.db")
+	defer db.Close()
+	db.AutoMigrate(&Model{})
+
+	db.Create(&Model{Name: "a"})
+	db.Create(&Model{Name: "b"})
+	db.Create(&Model{Name: "c"})
+
+	if err != nil {
+		panic(err)
+	}
+
+	kasoru, _ := New(db, &Model{}, Page{Cursor: 0, Limit: 2, Direction: "DESC"})
+
+	var kasoruNames []string
+	kasoru.DB.Model(&Model{}).Pluck("name", &kasoruNames)
+
+	var names []string
+	db.Model(&Model{}).Pluck("name", &names)
+
+	if strings.Join(kasoruNames, ":") != "c:b" {
+		t.Errorf("kasoru doesn't use reverse sorting")
+	}
+
+	if strings.Join(names, ":") != "a:b:c" {
+		t.Errorf("insert failed")
+	}
+}
+
 func TestNext(t *testing.T) {
 	os.Remove("tmp/TestNext.db")
 	db, err := gorm.Open("sqlite3", "tmp/TestNext.db")

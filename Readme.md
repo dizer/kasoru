@@ -8,7 +8,7 @@ import (
 )
 
 db, _ := gorm.Open("sqlite3", "tmp/kasoru.db")
-kasoru, _ := New(db, &GormModel{}, kasoru.Page{Cursor: 0, Limit: 2})
+kasoru, _ := New(db, &GormModel{}, kasoru.Page{Cursor: 0, Limit: 2, Direction: "ASC"})
 
 // Now you can use kasoru.DB
 kasoru.DB.Where("something IS NOT NULL").Find(&something)

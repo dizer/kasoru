@@ -17,8 +17,9 @@ type Kasoru struct {
 
 // Page of pagination
 type Page struct {
-	Cursor uint64
-	Limit  uint64
+	Cursor    uint64
+	Limit     uint64
+	Direction string
 }
 
 // New Kasoru
@@ -31,17 +32,27 @@ func New(db *gorm.DB, model interface{}, page Page) (*Kasoru, error) {
 
 	field := kasoru.CursorFieldname()
 
+	direction := "ASC"
+	sortingSymbol := ">"
+	if page.Direction == "DESC" {
+		direction = "DESC"
+		sortingSymbol = "<"
+	}
+
 	kasoru.DB = db.
-		Where(fmt.Sprintf("%s > ?", field), page.Cursor).
 		Limit(page.Limit).
-		Order(fmt.Sprintf("%s ASC", field))
+		Order(fmt.Sprintf("%s %s", field, direction))
+
+	if page.Cursor != 0 {
+		kasoru.DB = kasoru.DB.Where(fmt.Sprintf("%s %s ?", field, sortingSymbol), page.Cursor)
+	}
 
 	return &kasoru, nil
 }
 
 // Next Kasoru
 func (kasoru *Kasoru) Next(cursor uint64) *Kasoru {
-	nextKasoru, _ := New(kasoru.OriginalDB, kasoru.Model, Page{Cursor: cursor, Limit: kasoru.Page.Limit})
+	nextKasoru, _ := New(kasoru.OriginalDB, kasoru.Model, Page{Cursor: cursor, Limit: kasoru.Page.Limit, Direction: kasoru.Page.Direction})
 	return nextKasoru
 }
 
